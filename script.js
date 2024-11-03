@@ -58,6 +58,7 @@ class Furniture {
         this.x = WorldX(canvas.width/2);
         this.y = WorldY(canvas.height/2);
         this.color = color;
+        this.mainColor = color;
         this.idx = furnitures.length;
         this.collisions = [];
         this.wallCollisions = [];
@@ -140,9 +141,23 @@ function drawFurnitures() {
 
 
 // Stuff for furniture maker
-lenSlider = document.getElementById("Length");
-widSlider = document.getElementById("Width");
-furnName = document.getElementById("furnName");
+var lenSlider = document.getElementById("Length");
+var widSlider = document.getElementById("Width");
+var furnName = document.getElementById("furnName");
+
+var slideContainer = document.getElementById("slidecontainer");
+var useColor = document.getElementById("useColor");
+var rslider = document.getElementById("rslide");
+var gslider = document.getElementById("gslide");
+var bslider = document.getElementById("bslide");
+
+function updateColorPicker() {
+    slideContainer.style.backgroundColor = `rgb(${rslider.value}, ${gslider.value}, ${bslider.value})`;
+}
+rslider.oninput = updateColorPicker;
+gslider.oninput = updateColorPicker;
+bslider.oninput = updateColorPicker;
+updateColorPicker();
 
 
 function addFurniture() {
@@ -154,7 +169,8 @@ function addFurniture() {
     }
     else {
         console.log("Adding furniture");
-        let newFurn = new Furniture(furnName.value, lenSlider.value, widSlider.value, furnColor)
+        var color = `rgb(${rslider.value}, ${gslider.value}, ${bslider.value})`;
+        let newFurn = new Furniture(furnName.value, lenSlider.value, widSlider.value, useColor.checked ? color : furnColor);
         furnName.value = "";
         drawFurnitures();
     }
@@ -243,7 +259,7 @@ canvas.addEventListener('mousedown', (event) => {
 canvas.addEventListener('mouseup', () => {
     isDragging = false;
     isPanning = false;
-    if (selectedShape) selectedShape.color = editing ? wallEditColor : (selectedShape.color == furnSelectColor ? furnColor : selectedShape.color);
+    if (selectedShape) selectedShape.color = editing ? wallEditColor : (selectedShape.color == furnSelectColor ? selectedShape.mainColor : selectedShape.color);
     selectedShape = null;
 });
 
@@ -295,14 +311,14 @@ function checkCollision(shape) {
             furn.collisions.splice(furn.collisions.indexOf(shape.idx),1);
             console.log("Exited collision between " + shape.name + " and " + furn.name);
             if (furn.collisions.length == 0 && furn.wallCollisions.length == 0) {
-                furn.color = furnColor;
+                furn.color = furn.mainColor;
             }
         }
     }
     if (shape.collisions.length > 0 || shape.wallCollisions.length > 0) {
         shape.color = collisionColor;
     }
-    else shape.color = (selectedShape && selectedShape == shape) ? furnSelectColor : furnColor;
+    else shape.color = (selectedShape && selectedShape == shape) ? furnSelectColor : shape.mainColor;
 }
 
 // Add listener for mouse move
@@ -379,9 +395,9 @@ canvas.addEventListener('mousemove', (event) => {
     }
     for (let obj of editing ? walls : furnitures){
         if (!isDragging && isCursorInsideShape(mouseX, mouseY, obj)) {
-            obj.color = editing ? wallHoverColor : (obj.color == furnColor ? furnHoverColor : obj.color); // Change color when hovering
+            obj.color = editing ? wallHoverColor : (obj.color == obj.mainColor ? furnHoverColor : obj.color); // Change color when hovering
         } else if (!isDragging || obj != selectedShape) {
-            obj.color = editing ? wallColor : (obj.color == furnHoverColor ? furnColor : obj.color); // Revert color
+            obj.color = editing ? wallColor : (obj.color == furnHoverColor ? obj.mainColor : obj.color); // Revert color
         }
     }
     clear();
@@ -461,6 +477,26 @@ window.addEventListener('keydown', (event) => {
             if (!editing) drawFurnitures();
         }
     }
+    if (event.key === 'n' || event.key === 'N') {
+        if (isDragging) {
+            if (selectedShape.type == "Furniture") {
+                selectedShape.name = furnName.value;
+            }
+            clear();
+            drawWalls();
+            if (!editing) drawFurnitures();
+        }
+    }
+    if (event.key === 'c' || event.key === 'C') {
+        if (isDragging) {
+            if (selectedShape.type == "Furniture") {
+                selectedShape.mainColor = `rgb(${rslider.value}, ${gslider.value}, ${bslider.value})`;
+            }
+            clear();
+            drawWalls();
+            if (!editing) drawFurnitures();
+        }
+    }
 });
 
 
@@ -484,6 +520,7 @@ function importData() {
             furnitures[i].type = "Furniture";
             furnitures[i].collisions = [];
             furnitures[i].wallCollisions = [];
+            furnitures[i].mainColor = furnitures[i].color;
         }
         for (let i = 0; i < walls.length; i++) {
             walls[i].idx = i;
