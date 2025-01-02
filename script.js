@@ -132,7 +132,7 @@ function drawFurnitures() {
 
         ctx.font = "12px Arial";
         ctx.fillStyle = textColor;
-        ctx.fillText(furn.name, pointx, pointy);
+        ctx.fillText(furn.name, CanvasX(furn.x - furn.width/8), CanvasY(furn.y + furn.length/8));
         ctx.fillText(furn.length+"\"", CanvasX(furn.x + furn.width/2)+10, pointy);
         ctx.fillText(furn.width+"\"", pointx, CanvasY(furn.y + furn.length/2)+20);
     }
@@ -333,13 +333,14 @@ canvas.addEventListener('mousemove', (event) => {
         // For each edge of shape, if close enough to appropriate edge of other shapes, snap
         // If overlap, change color ?
         if (snap) {
+            const snapDist = 5/zoom;
             for (let wall of walls) {
                 let diffx = selectedShape.x - wall.x;
                 let distx = Math.abs(diffx) - selectedShape.width/2 - wall.width/2;
                 let diffy = selectedShape.y - wall.y;
                 let disty = Math.abs(diffy) - selectedShape.length/2 - wall.length/2;
                 // If left side of shape is near or past right side of wall
-                if (distx < 5 && distx > -5 && disty < 0) {
+                if (distx < snapDist && distx > -snapDist && disty < 0) {
                     // If right side of shape is left of left side of wall
                     if (diffx < 0) {
                         selectedShape.x = wall.x - wall.width/2 - selectedShape.width/2;
@@ -348,7 +349,7 @@ canvas.addEventListener('mousemove', (event) => {
                         selectedShape.x = wall.x + wall.width/2 + selectedShape.width/2;
                     }
                 }
-                if (disty < 5 && disty > -5 && distx < 0) {
+                if (disty < snapDist && disty > -snapDist && distx < 0) {
                     // If right side of shape is left of left side of wall
                     if (diffy < 0) {
                         selectedShape.y = wall.y - wall.length/2 - selectedShape.length/2;
@@ -366,7 +367,7 @@ canvas.addEventListener('mousemove', (event) => {
                     let diffy = selectedShape.y - furn.y;
                     let disty = Math.abs(diffy) - selectedShape.length/2 - furn.length/2;
                     // If left side of shape is near or past right side of furn
-                    if (distx < 5 && distx > -5 && disty < 10) {
+                    if (distx < snapDist && distx > -snapDist && disty < 10) {
                         // If right side of shape is left of left side of furn
                         if (diffx < 0) {
                             selectedShape.x = furn.x - furn.width/2 - selectedShape.width/2;
@@ -375,7 +376,7 @@ canvas.addEventListener('mousemove', (event) => {
                             selectedShape.x = furn.x + furn.width/2 + selectedShape.width/2;
                         }
                     }
-                    if (disty < 5 && disty > -5 && distx < 10) {
+                    if (disty < snapDist && disty > -snapDist && distx < 10) {
                         // If right side of shape is left of left side of furn
                         if (diffy < 0) {
                             selectedShape.y = furn.y - furn.length/2 - selectedShape.length/2;
@@ -470,7 +471,7 @@ window.addEventListener('keydown', (event) => {
             }
             else if (selectedShape.type == "Furniture") {
                 console.log("Duplicating " + selectedShape);
-                let newFurn = new Furniture(selectedShape.name, selectedShape.length, selectedShape.width);
+                let newFurn = new Furniture(selectedShape.name, selectedShape.length, selectedShape.width, selectedShape.mainColor);
             }
             clear();
             drawWalls();
