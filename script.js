@@ -77,23 +77,23 @@ class Furniture {
 // walls.push(wall1);
 
 function CanvasX(x) {
-    x_c = (x * zoom) + panx + canvas.width/2;
+    x_c = (x + panx) * zoom + canvas.width/2;
     return x_c;
 }
 function CanvasY(y) {
-    y_c = (y * zoom) + pany + canvas.height/2;
+    y_c = (y + pany) * zoom + canvas.height/2;
     return y_c;
 }
 function WorldX(x_c) {
     let x = x_c - canvas.width/2;
-    x -= panx;
     x /= zoom;
+    x -= panx;
     return x;
 }
 function WorldY(y_c) {
     let y = y_c - canvas.height/2;
-    y -= pany;
     y /= zoom;
+    y -= pany;
     return y;
 }
 
@@ -391,8 +391,8 @@ canvas.addEventListener('mousemove', (event) => {
         }
     }
     else if (isPanning) {
-        panx += mouseX - lastMouseX;
-        pany += mouseY - lastMouseY;
+        panx += (mouseX - lastMouseX) / zoom;
+        pany += (mouseY - lastMouseY) / zoom;
     }
     for (let obj of editing ? walls : furnitures){
         if (!isDragging && isCursorInsideShape(mouseX, mouseY, obj)) {
@@ -409,10 +409,29 @@ canvas.addEventListener('mousemove', (event) => {
 });
 
 canvas.addEventListener('wheel', (event) => {
+    const rect = canvas.getBoundingClientRect();
+    const mouseX = event.clientX - rect.left;
+    const mouseY = event.clientY - rect.top;
     if (event.deltaY < 0) {
+        before_x = WorldX(mouseX)
+        before_y = WorldY(mouseY)
         zoom *= 1.1;
+        after_x = WorldX(mouseX)
+        after_y = WorldY(mouseY)
+        x_diff = after_x-before_x
+        y_diff = after_y-before_y
+        panx += x_diff;
+        pany += y_diff
     } else {
+        before_x = WorldX(mouseX)
+        before_y = WorldY(mouseY)
         zoom *= .9;
+        after_x = WorldX(mouseX)
+        after_y = WorldY(mouseY)
+        x_diff = after_x-before_x
+        y_diff = after_y-before_y
+        panx += x_diff;
+        pany += y_diff
     }
     clear();
     drawWalls();
